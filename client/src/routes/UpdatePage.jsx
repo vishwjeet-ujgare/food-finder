@@ -1,9 +1,10 @@
 import React from 'react'
+import UpdateRestaurant from '../components/UpdateRestaurant';
 
 export default function UpdatePage() {
   return (
     <div>
-      <h2>I am from restaurant update componanets</h2>
+      <UpdateRestaurant/>
     </div>
   )
 }

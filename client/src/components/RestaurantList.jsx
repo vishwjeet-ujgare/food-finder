@@ -35,7 +35,7 @@ export default function RestaurantList() {
                     return restaurants.filter((restaurant) => restaurant.id !== id)
                 })
 
-                console.log(response)
+                // console.log(response)
             } else {
                 console.log(response.data.message)
             }
