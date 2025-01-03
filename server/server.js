@@ -1,22 +1,28 @@
 import { config } from "dotenv";
 import e from "express";
 import { query } from "./db/index.js";
+import cors from "cors"
 
 
 config();
+
 //Create an express app
 const app = e();
 
+app.use(cors());
 
 //Middle ware to parse req data i.e json  into java object 
 app.use(e.json());
+
+
+
 const port = process.env.PORT || 3002;
 
 
 app.get("/api/v1/restaurants", async (req, res) => {
     try {
         const results = await query("SELECT * FROM restaurants");
-        console.log("Restaurants : ", results["rows"]);
+        // console.log("Restaurants : ", results["rows"]);
 
         res.status(200).json({
             status: "success",
