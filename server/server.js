@@ -50,45 +50,49 @@ app.get("/api/v1/restaurants", async (req, res) => {
 
 
 });
-
 app.get("/api/v1/restaurants/:id", async (req, res) => {
     try {
         const restaurantId = req.params.id;
 
+        // Fetch restaurant details
+        const restaurant = await query("SELECT * FROM restaurants WHERE id=$1", [restaurantId]);
 
-        const result = await query("SELECT * FROM restaurants WHERE id=$1", [restaurantId]);
+        // Fetch reviews for the restaurant
+        const reviews = await query("SELECT * FROM reviews WHERE restaurant_id=$1", [restaurantId]);
+        // console.log(reviews);
 
-
-        if (result.rowCount === 0) {
+        // Check if the restaurant exists
+        if (restaurant.rowCount === 0) {
             return res.status(404).json({
                 status: "fail",
                 statusCode: 404,
-                totalRows: result.rowCount,
+                totalRows: restaurant.rowCount,
                 message: `Restaurant with ID ${restaurantId} not found.`,
-                data: { restaurant: [] }
+                data: { restaurant: [], reviews: [] },
             });
         }
 
-
+        // Send success response with restaurant and reviews
         res.status(200).json({
             status: "success",
             statusCode: 200,
-            totalRows: result.rowCount,
-            data: { restaurant: result.rows[0] }
+            totalRows: restaurant.rowCount,
+            data: {
+                restaurant: restaurant.rows[0], // First row of the restaurant details
+                reviews: reviews.rows, // Array of reviews for the restaurant
+            },
         });
     } catch (error) {
+        console.error("Error fetching restaurant data:", error.message);
 
-        // console.error("Error fetching restaurant data:", error.message);
-
+        // Send error response in case of an exception
         res.status(500).json({
             status: "error",
             statusCode: 500,
-            message: "Internal Server Error."
+            message: "Internal Server Error.",
         });
     }
 });
-
-
 
 
 app.post("/api/v1/restaurants", async (req, res) => {
@@ -127,8 +131,8 @@ app.put("/api/v1/restaurants/:id", async (req, res) => {
         const { name, location, price_range } = req.body;
         const id = req.params.id;
 
-        console.log("update restaurant which has id :", req.params.id);
-        console.log("values that need to update are : ", req.body);
+        // console.log("update restaurant which has id :", req.params.id);
+        // console.log("values that need to update are : ", req.body);
 
 
         // validating data

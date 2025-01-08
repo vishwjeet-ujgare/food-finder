@@ -24,8 +24,8 @@ export default function RestaurantList() {
     }, []);
 
 
-
-    async function handleDelete(id) {
+    async function handleDelete(event,id) {
+           event.stopPropagation();
 
         try {
             const response = await RestaurantFinder.delete(`/${id}`);
@@ -39,18 +39,19 @@ export default function RestaurantList() {
             } else {
                 console.log(response.data.message)
             }
-
-
-
         } catch (error) {
             console.log("Error while deleting restaurant of id " + id + " ", error);
         }
     }
 
-
-
-    function handleUpdate(id) {
+    function handleUpdate(event,id) {
+        event.stopPropagation();
         navigate(`/restaurants/${id}/update`)
+    }
+
+
+    function handleRestaurantSelect(id) {
+        navigate(`/restaurants/${id}`);
     }
 
     return (
@@ -70,13 +71,13 @@ export default function RestaurantList() {
                 <tbody>
 
                     {restaurants && restaurants.map((restaurant) => {
-                        return (<tr key={restaurant.id}>
+                        return (<tr onClick={() => handleRestaurantSelect(restaurant.id)} key={restaurant.id}>
                             <td>{restaurant.name}</td>
                             <td>{restaurant.location}</td>
                             <td>{"$".repeat(restaurant.price_range)}</td>
                             <td>reviews</td>
-                            <td><button onClick={() => handleUpdate(restaurant.id)} className="btn btn-warning">Update</button></td>
-                            <td><button onClick={() => handleDelete(restaurant.id)} className='btn btn-danger'>Delete</button></td>
+                            <td><button onClick={(event) => handleUpdate(event,restaurant.id)} className="btn btn-warning">Update</button></td>
+                            <td><button onClick={(event) => handleDelete(event,restaurant.id)} className='btn btn-danger'>Delete</button></td>
                         </tr>
                         )
                     })}

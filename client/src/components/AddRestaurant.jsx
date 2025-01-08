@@ -31,10 +31,19 @@ export default function AddRestaurant() {
             })
 
             addRestaurants(response.data.data.restaurant);
-            console.log(response);
+            clearForm();
+            // console.log(response);
         } catch (error) {
             console.error("Error submitting restaurant info:", error);
         }
+    }
+
+    function clearForm() {
+        setRestaurantInfo(()=>({
+            name:"",
+            location:"",
+            priceRange:"Price Range"
+        }));
     }
 
     return (

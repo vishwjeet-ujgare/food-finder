@@ -6,13 +6,14 @@ const RestaurantsContext = createContext();
 // Define the provider component as a normal function
 function RestaurantsContextProvider(props) {
     const [restaurants, setRestaurants] = useState([]);
+    const [selectRestaurant, setSelectRestaurant] = useState(null);
 
     const addRestaurants = (restaurant) => {
         setRestaurants([...restaurants, restaurant]);
     };
 
     return (
-        <RestaurantsContext.Provider value={{ restaurants, setRestaurants, addRestaurants }}>
+        <RestaurantsContext.Provider value={{ restaurants, setRestaurants, addRestaurants, selectRestaurant, setSelectRestaurant }}>
             {props.children}
         </RestaurantsContext.Provider>
     );
