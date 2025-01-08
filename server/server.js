@@ -213,6 +213,63 @@ app.delete("/api/v1/restaurants/:id", async (req, res) => {
     }
 });
 
+app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
+    try {
+        const restaurantId = req.params.id;
+        const { name, rating, review } = req.body;
+
+        // Validation
+        if (!name || !rating || !review || !(rating >= 1 && rating <= 5)) {
+            return res.status(400).json({
+                status: "fail",
+                statusCode: 400,
+                message: "All fields are required and Rating should be between 1 to 5.",
+            });
+        }
+
+        // Check for restaurant existance
+        const restaurantCheck = await query(
+            "SELECT * FROM restaurants WHERE id = $1",
+            [restaurantId]
+        );
+
+        if (restaurantCheck.rowCount === 0) {
+            return res.status(404).json({
+                status: "fail",
+                statusCode: 404,
+                message: `Restaurant with ID ${restaurantId} not found.`,
+            });
+        }
+
+       
+        const newReview = await query(
+            "INSERT INTO reviews (restaurant_id, name, rating, review) VALUES ($1, $2, $3, $4) RETURNING *",
+            [restaurantId, name, rating, review]
+        );
+
+        // Respond success
+        res.status(201).json({
+            status: "success",
+            statusCode: 201,
+            message: "Review added successfully.",
+            data: {
+                review:newReview.rows[0],
+            }
+        });
+        
+    } catch (error) {
+        console.error("Error:", error.message);
+
+        // Handle  server error
+        res.status(500).json({
+            status: "error",
+            statusCode: 500,
+            message: "Internal Server Error.",
+        });
+    }
+});
+
+
 //Define a route
 app.listen(port, () => {
     console.log(`Server is running on ${port}...`);
