@@ -24,8 +24,8 @@ app.get("/api/v1/restaurants", async (req, res) => {
         // const results = await query("SELECT * FROM restaurants");
         const restaurantRatingsData = await query(
             "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
-          );
-      
+        );
+
         // console.log("restaurant Ratings Data : ", restaurantRatingsData["rows"]);
 
         res.status(200).json({
@@ -64,7 +64,7 @@ app.get("/api/v1/restaurants/:id", async (req, res) => {
         const restaurant = await query(
             "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
             [restaurantId]
-          );
+        );
 
         // Fetch reviews for the restaurant
         const reviews = await query("SELECT * FROM reviews WHERE restaurant_id=$1", [restaurantId]);
@@ -251,11 +251,17 @@ app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
             });
         }
 
-       
+
         const newReview = await query(
             "INSERT INTO reviews (restaurant_id, name, rating, review) VALUES ($1, $2, $3, $4) RETURNING *",
             [restaurantId, name, rating, review]
         );
+
+        const restaurant = await query(
+            "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
+            [restaurantId]
+        );
+        // console.log(restaurant)
 
         // Respond success
         res.status(201).json({
@@ -263,10 +269,11 @@ app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
             statusCode: 201,
             message: "Review added successfully.",
             data: {
-                review:newReview.rows[0],
+                restaurant:restaurant.rows[0],
+                review: newReview.rows[0],
             }
         });
-        
+
     } catch (error) {
         console.error("Error:", error.message);
 
