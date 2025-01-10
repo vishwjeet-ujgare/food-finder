@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RestaurantFinder from '../apis/RestaurantFinder';
 import { RestaurantsContext } from '../context/RestaurantList';
+import StartRating from './StartRating';
 
 export default function RestaurantList() {
 
@@ -21,16 +22,16 @@ export default function RestaurantList() {
             }
         }
         fetchData();
-    }, []);
+    }, [setRestaurants]);
 
 
-    async function handleDelete(event,id) {
-           event.stopPropagation();
+    async function handleDelete(event, id) {
+        event.stopPropagation();
 
         try {
             const response = await RestaurantFinder.delete(`/${id}`);
 
-            if (response.data.status == "success") {
+            if (response.data.status === "success") {
                 setRestaurants(() => {
                     return restaurants.filter((restaurant) => restaurant.id !== id)
                 })
@@ -44,7 +45,7 @@ export default function RestaurantList() {
         }
     }
 
-    function handleUpdate(event,id) {
+    function handleUpdate(event, id) {
         event.stopPropagation();
         navigate(`/restaurants/${id}/update`)
     }
@@ -53,6 +54,19 @@ export default function RestaurantList() {
     function handleRestaurantSelect(id) {
         navigate(`/restaurants/${id}`);
     }
+
+    function renderRating(restaurant) {
+        if (!restaurant.count) {
+            return <span className="text-warning">0 reviews</span>;
+        }
+        return (
+            <>
+                <StartRating rating={restaurant.average_rating} />
+
+                <span className="text-warning ml-1">({restaurant.count})</span>
+            </>
+        );
+    };
 
     return (
         <div className="list-group">
@@ -70,21 +84,28 @@ export default function RestaurantList() {
 
                 <tbody>
 
-                    {restaurants && restaurants.map((restaurant) => {
+                    {restaurants && restaurants.length > 0 ? (restaurants.map((restaurant) => {
                         return (<tr onClick={() => handleRestaurantSelect(restaurant.id)} key={restaurant.id}>
                             <td>{restaurant.name}</td>
                             <td>{restaurant.location}</td>
                             <td>{"$".repeat(restaurant.price_range)}</td>
-                            <td>reviews</td>
-                            <td><button onClick={(event) => handleUpdate(event,restaurant.id)} className="btn btn-warning">Update</button></td>
-                            <td><button onClick={(event) => handleDelete(event,restaurant.id)} className='btn btn-danger'>Delete</button></td>
+                            <td>{renderRating(restaurant)}</td>
+                            <td><button onClick={(event) => handleUpdate(event, restaurant.id)} className="btn btn-warning">Update</button></td>
+                            <td><button onClick={(event) => handleDelete(event, restaurant.id)} className='btn btn-danger'>Delete</button></td>
                         </tr>
                         )
-                    })}
+                    })
+
+                    ) : (<tr >
+                        <td colSpan="6" className="text-center">
+                            No data is found! Pleass add a restaurant.
+                        </td>
+                    </tr>
+                    )}
 
 
                 </tbody>
             </table>
-        </div>
+        </div >
     )
 }

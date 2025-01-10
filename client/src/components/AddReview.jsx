@@ -1,4 +1,7 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
+import {  useParams } from 'react-router-dom';
+import RestaurantFinder from '../apis/RestaurantFinder';
+import { RestaurantsContext } from '../context/RestaurantList';
 
 export default function AddReview() {
 
@@ -9,15 +12,52 @@ export default function AddReview() {
 
     })
 
+    const { setSelectRestaurant } = useContext(RestaurantsContext);
 
+
+
+    const { id } = useParams();
+   
 
     function handleReviewInfo(event) {
         const { name, value } = event.target;
-        console.log(name, " and ", value);
 
         setReviewInfo((prev) => ({
             ...prev, [name]: value
         }));
+    }
+
+    async function handleReviewSumission(e) {
+        e.preventDefault();
+
+        try {
+            const response = await RestaurantFinder.post(`/${id}/addReview`, reviewInfo);
+            setSelectRestaurant((prev) => ({
+                ...prev,
+                restaurant:response.data.data.restaurant ,
+                reviews: [...prev.reviews, response.data.data.review]
+            }));
+
+            // console.log("Server Reponse : ", response)
+        } catch (error) {
+            console.log("Error : ", error)
+        }
+
+        // navigate(0);
+
+        clearReviewForm();
+    }
+
+    function clearReviewForm() {
+        setReviewInfo(() => {
+            return (
+                {
+                    name: "",
+                    rating: "Rating",
+                    review: ""
+                }
+            );
+        })
     }
 
     return (
@@ -47,7 +87,7 @@ export default function AddReview() {
                     <textarea name="review" onChange={handleReviewInfo} value={reviewInfo.review} id="Review" className='form-control' ></textarea>
                 </div>
 
-                <button className="btn btn-primary">
+                <button type='submit' onClick={handleReviewSumission} className="btn btn-primary">
                     Submit
                 </button>
             </form>
