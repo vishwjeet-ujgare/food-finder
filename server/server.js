@@ -21,20 +21,24 @@ const port = process.env.PORT || 3002;
 
 app.get("/api/v1/restaurants", async (req, res) => {
     try {
-        const results = await query("SELECT * FROM restaurants");
-        // console.log("Restaurants : ", results["rows"]);
+        // const results = await query("SELECT * FROM restaurants");
+        const restaurantRatingsData = await query(
+            "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
+          );
+      
+        // console.log("restaurant Ratings Data : ", restaurantRatingsData["rows"]);
 
         res.status(200).json({
             status: "success",
             statusCode: 200,
-            totalRows: results.rows.length,
+            totalRows: restaurantRatingsData.rows.length,
             data: {
-                restaurants: results.rows
+                restaurants: restaurantRatingsData.rows
             }
         });
 
     } catch (error) {
-        // console.error("Error fetching restaurants:", error);
+        console.error("Error fetching restaurants:", error);
 
         res.status(500).json({
             status: "error",
@@ -50,12 +54,17 @@ app.get("/api/v1/restaurants", async (req, res) => {
 
 
 });
+
 app.get("/api/v1/restaurants/:id", async (req, res) => {
     try {
         const restaurantId = req.params.id;
 
         // Fetch restaurant details
-        const restaurant = await query("SELECT * FROM restaurants WHERE id=$1", [restaurantId]);
+        // const restaurant = await query("SELECT * FROM restaurants WHERE id=$1", [restaurantId]);
+        const restaurant = await query(
+            "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
+            [restaurantId]
+          );
 
         // Fetch reviews for the restaurant
         const reviews = await query("SELECT * FROM reviews WHERE restaurant_id=$1", [restaurantId]);
@@ -212,6 +221,7 @@ app.delete("/api/v1/restaurants/:id", async (req, res) => {
         });
     }
 });
+
 
 app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
     try {
